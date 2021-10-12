@@ -1,3 +1,2 @@
 # hufsday-back
 
-knex, koa

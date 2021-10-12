@@ -33,7 +33,7 @@ exports.createPost = async (ctx) => {
       content: content,
     })
     .then((result) => {
-      ctx.body = 'Success';
+      ctx.body = result;
     });
 };
 
