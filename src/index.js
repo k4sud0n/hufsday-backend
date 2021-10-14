@@ -7,11 +7,14 @@ const app = new Koa();
 const router = new Router();
 const api = require('./api');
 
+const { jwtMiddleware } = require('./lib/token');
+
 app.use(bodyParser());
+app.use(jwtMiddleware);
 router.use('/api', api.routes());
 
 app
-  .use(cors({ origin: 'http://localhost:3000' }))
+  .use(cors({ origin: 'http://localhost:3000', credentials: true }))
   .use(router.routes())
   .use(router.allowedMethods());
 
