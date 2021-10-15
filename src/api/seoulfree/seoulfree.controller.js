@@ -13,7 +13,7 @@ exports.listPost = async (ctx) => {
   //   });
 
   await database('seoulfree')
-    .select('*')
+    .select('id', 'title', 'content', 'created')
     .orderBy('id', 'desc')
     .where(function () {
       this.where('id', '>', (ctx.query.page - 1) * 20);
