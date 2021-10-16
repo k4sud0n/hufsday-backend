@@ -11,4 +11,7 @@ seoulfree.get('/:id', checkLoggedIn, seoulfreeController.listDetailedPost);
 seoulfree.delete('/:id', checkLoggedIn, seoulfreeController.deletePost);
 seoulfree.patch('/:id', checkLoggedIn, seoulfreeController.updatePost);
 
+seoulfree.get('/:id/comment', checkLoggedIn, seoulfreeController.listComment);
+seoulfree.post('/:id/comment/create', checkLoggedIn, seoulfreeController.createComment);
+
 module.exports = seoulfree;

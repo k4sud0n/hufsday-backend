@@ -23,7 +23,6 @@ exports.register = async (ctx) => {
         ctx.body = { result: 'Success', id: user_id[0] };
       });
   } catch (error) {
-    console.log(error); // 1062
     // 아이디 중복 체크
     if (error.code == 'ER_DUP_ENTRY') {
       ctx.response.status = 401;
