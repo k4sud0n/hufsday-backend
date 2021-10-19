@@ -1,26 +1,26 @@
 require('dotenv').config();
 
 const bcrypt = require('bcrypt');
-const joi = require('joi');
+const Joi = require('joi');
 const jwt = require('jsonwebtoken');
 
 const database = require('../../database');
 
 // 회원가입
 exports.register = async (ctx) => {
-  const { user_id, password, nickname } = ctx.request.body;
+  const { username, password, nickname } = ctx.request.body;
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
     await database('user')
       .insert({
-        user_id: user_id,
+        username: username,
         password: hashedPassword,
         nickname: nickname,
       })
-      .then((user_id) => {
+      .then((username) => {
         ctx.response.status = 200;
-        ctx.body = { result: 'Success', id: user_id[0] };
+        ctx.body = { result: 'Success', id: username[0] };
       });
   } catch (error) {
     // 아이디 중복 체크
@@ -47,11 +47,23 @@ exports.check = (ctx) => {
 
 // 로그인
 exports.login = async (ctx) => {
-  const { user_id, password } = ctx.request.body;
+  const { username, password } = ctx.request.body;
+
+  const schema = Joi.object({
+    username: Joi.string().alphanum().min(3).max(30).required(),
+    password: Joi.string()
+      .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
+      .required(),
+  });
+
+  const value = await schema.validateAsync({
+    username: username,
+    password: password,
+  });
 
   await database('user')
     .where({
-      user_id: user_id,
+      username: value.username,
     })
     .first()
     .then((user) => {
@@ -69,7 +81,8 @@ exports.login = async (ctx) => {
               };
             } else {
               const payload = {
-                user_id: user.user_id,
+                id: user.id,
+                username: user.username,
                 nickname: user.nickname,
               };
               const options = {

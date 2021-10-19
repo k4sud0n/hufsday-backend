@@ -19,14 +19,15 @@ exports.jwtMiddleware = async (ctx, next) => {
     const decoded = await decodeToken(token); // 토큰을 디코딩 합니다
 
     ctx.state.user = {
-      user_id: decoded.user_id,
+      id: decoded.id,
+      username: decoded.username,
       nickname: decoded.nickname,
     };
 
     // 토큰 만료일이 하루밖에 안남으면 토큰을 재발급합니다
     if (Date.now() / 1000 - decoded.iat > 60 * 60 * 24) {
       // 하루가 지나면 갱신해준다.
-      const { user_id, nickname } = decoded;
+      const { username, nickname } = decoded;
       const freshToken = await generateToken({ username, nickname }, 'user');
       ctx.cookies.set('access_token', freshToken, {
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7days

@@ -8,10 +8,15 @@ const checkLoggedIn = require('../../lib/checkLoggedIn');
 seoulfree.get('/', checkLoggedIn, seoulfreeController.listPost);
 seoulfree.post('/create', checkLoggedIn, seoulfreeController.createPost);
 seoulfree.get('/:id', checkLoggedIn, seoulfreeController.listDetailedPost);
-seoulfree.delete('/:id', checkLoggedIn, seoulfreeController.deletePost);
+seoulfree.delete('/:id/delete', checkLoggedIn, seoulfreeController.deletePost);
 seoulfree.patch('/:id', checkLoggedIn, seoulfreeController.updatePost);
+seoulfree.post('/:id/thumbs_up', checkLoggedIn, seoulfreeController.postThumbsUp);
+seoulfree.post('/:id/thumbs_down', checkLoggedIn, seoulfreeController.postThumbsDown);
 
-seoulfree.get('/:id/comment', checkLoggedIn, seoulfreeController.listComment);
-seoulfree.post('/:id/comment/create', checkLoggedIn, seoulfreeController.createComment);
+seoulfree.get('/:id/comments', checkLoggedIn, seoulfreeController.listComment);
+seoulfree.post('/:id/comments/create', checkLoggedIn, seoulfreeController.createComment);
+seoulfree.delete('/:id/comments/:comment_id/delete', checkLoggedIn, seoulfreeController.deleteComment);
+seoulfree.patch('/:id/comments', checkLoggedIn, seoulfreeController.updateComment);
+seoulfree.post('/:id/comments/:comment_id/thumbs_up', checkLoggedIn, seoulfreeController.commentThumbsUp);
 
 module.exports = seoulfree;
