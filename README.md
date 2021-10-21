@@ -29,7 +29,7 @@ CREATE TABLE seoulfree (
     content text NOT NULL,
     created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id INT UNSIGNED NOT NULL,
-    view_count INT NOT NULL DEFAULT 1,
+    view_count INT NOT NULL DEFAULT 0,
     thumbs_up INT NOT NULL DEFAULT 0,
     thumbs_down INT NOT NULL DEFAULT 0,
     FOREIGN KEY (`user_id`) REFERENCES user (`id`)
@@ -95,11 +95,39 @@ CREATE TABLE user (
 INSERT INTO user (username, password, nickname) VALUES ('test1', 'test1', 'test1');
 ```
 
+### 알림 테이블
+
+```sql
+CREATE TABLE notification (
+    id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    post_id INT UNSIGNED NOT NULL,
+    sender_id INT UNSIGNED NOT NULL,
+    receiver_id INT UNSIGNED NOT NULL,
+    content text NOT NULL,
+    created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    readed boolean not null default 0,
+    FOREIGN KEY (post_id) REFERENCES seoulfree(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES user(id),
+    FOREIGN KEY (receiver_id) REFERENCES user(id)
+);
+```
+
+```sql
+INSERT INTO notification (sender_id, receiver_id, content) VALUES ('2', '1', 'hiiiii');
+```
+
+```sql
+update notification set readed = 1 where id = 5 and receiver_id = 1;
+```
+
 ### 로그인
 
 프론트엔드에서 jwt 쿠키 가져오기는 https://r4bb1t.tistory.com/38 참고
+그냥 proxy 값 주면 해결되는 문제였음
 
 ### 개선
 
 api에서 유저 닉네임 다 받아오는데 이건 익명이 아님..
 차라리 DB 테이블에 가입시 랜덤 난수를 줘서 그걸로 식별하게 해볼까?
+
+토큰 시스템 passport-jwt로 고치기

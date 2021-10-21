@@ -50,6 +50,12 @@ exports.createPost = async (ctx) => {
 exports.listDetailedPost = async (ctx) => {
   const { id } = ctx.params;
 
+  // if (result[0].user_id !== ctx.state.user) {
+  //   database('seoulfree').increment('view_count', 1);
+  // }
+
+  await database('seoulfree').increment('view_count', 1);
+
   await database('seoulfree')
     .select(
       'seoulfree.id',
@@ -141,8 +147,16 @@ exports.listComment = async (ctx) => {
 // 댓글 등록
 exports.createComment = async (ctx) => {
   const { id } = ctx.params;
-  const { content } = ctx.request.body;
+  const { postCreatorId, content } = ctx.request.body;
   const user_id = ctx.state.user.id;
+
+  // 알림
+  await database('notification').insert({
+    post_id: id,
+    sender_id: user_id,
+    receiver_id: postCreatorId,
+    content: content,
+  });
 
   await database('seoulfree_comment')
     .insert({
