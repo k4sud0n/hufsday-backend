@@ -50,11 +50,14 @@ exports.createPost = async (ctx) => {
 exports.listDetailedPost = async (ctx) => {
   const { id } = ctx.params;
 
-  // if (result[0].user_id !== ctx.state.user) {
-  //   database('seoulfree').increment('view_count', 1);
-  // }
+  if (ctx.cookies.get('seoulfree_' + id) == undefined) {
+    ctx.cookies.set('seoulfree_' + id, 'view', {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
 
-  await database('seoulfree').increment('view_count', 1);
+    await database('seoulfree').increment('view_count', 1);
+  }
 
   await database('seoulfree')
     .select(
@@ -82,44 +85,144 @@ exports.listDetailedPost = async (ctx) => {
 exports.deletePost = async (ctx) => {
   const { id } = ctx.params;
 
-  await database('seoulfree')
-    .where('id', '=', id)
-    .del()
-    .then((result) => {
-      ctx.response.status = 200;
-      ctx.body = result;
-    });
+  const postWriterId = database('seoulfree')
+    .select('user_id')
+    .where('seoulfree.id', id)
+    .then((result) => result[0].user_id);
+
+  if ((await postWriterId) == ctx.state.user.id) {
+    await database('seoulfree')
+      .where('id', '=', id)
+      .del()
+      .then((result) => {
+        ctx.response.status = 200;
+        ctx.body = result;
+      });
+  } else {
+    ctx.response.status = 401;
+    ctx.body = '권한이 없습니다.';
+  }
 };
 
 // 게시물 수정
-exports.updatePost = (ctx) => {
-  ctx.body = 'updated';
+exports.updatePost = async (ctx) => {
+  const { title, content } = ctx.request.body;
+  const { id } = ctx.params;
+
+  const postWriterId = database('seoulfree')
+    .select('user_id')
+    .where('seoulfree.id', id)
+    .then((result) => result[0].user_id);
+
+  if ((await postWriterId) == ctx.state.user.id) {
+    await database('seoulfree')
+      .where('id', '=', id)
+      .update({
+        title: title,
+        content: content,
+      })
+      .then((result) => {
+        ctx.response.status = 200;
+        ctx.body = result;
+      });
+  } else {
+    ctx.response.status = 401;
+    ctx.body = '권한이 없습니다.';
+  }
 };
 
 // 게시물 추천
 exports.postThumbsUp = async (ctx) => {
   const { id } = ctx.params;
 
-  await database('seoulfree')
-    .where('id', '=', id)
-    .increment('thumbs_up', 1)
-    .then((result) => {
-      ctx.response.status = 200;
-      ctx.body = result;
-    });
+  const postWriterId = database('seoulfree')
+    .select('user_id')
+    .where('seoulfree.id', id)
+    .then((result) => result[0].user_id);
+
+  const checkThumbsUp = database('seoulfree_thumbs')
+    .select('thumbs_up')
+    .where('post_id', id)
+    .andWhere('user_id', ctx.state.user.id)
+    .then((result) => result);
+
+  if ((await postWriterId) !== ctx.state.user.id) {
+    if (
+      (await checkThumbsUp).length == 0 ||
+      (await checkThumbsUp)[0].thumbs_up == 0
+    ) {
+      if ((await checkThumbsUp).length == 0) {
+        await database('seoulfree_thumbs').insert({
+          post_id: id,
+          user_id: ctx.state.user.id,
+          thumbs_up: 1,
+        });
+      } else {
+        await database('seoulfree_thumbs').update('thumbs_up', 1);
+      }
+
+      await database('seoulfree')
+        .where('id', '=', id)
+        .increment('thumbs_up', 1)
+        .then((result) => {
+          ctx.response.status = 200;
+          ctx.body = result;
+        });
+    } else {
+      ctx.response.status = 401;
+      ctx.body = 'thumbs_up_duplicate';
+    }
+  } else {
+    ctx.response.status = 401;
+    ctx.body = 'thumbs_up_own';
+  }
 };
 
 // 게시물 비추천
 exports.postThumbsDown = async (ctx) => {
   const { id } = ctx.params;
 
-  await database('seoulfree')
-    .where('id', '=', id)
-    .increment('thumbs_down', 1)
-    .then((result) => {
-      ctx.response.status = 200;
-      ctx.body = result;
-    });
+  const postWriterId = database('seoulfree')
+    .select('user_id')
+    .where('seoulfree.id', id)
+    .then((result) => result[0].user_id);
+
+  const checkThumbsDown = database('seoulfree_thumbs')
+    .select('thumbs_down')
+    .where('post_id', id)
+    .andWhere('user_id', ctx.state.user.id)
+    .then((result) => result);
+
+  if ((await postWriterId) !== ctx.state.user.id) {
+    if (
+      (await checkThumbsDown).length == 0 ||
+      (await checkThumbsDown)[0].thumbs_down == 0
+    ) {
+      if ((await checkThumbsDown).length == 0) {
+        await database('seoulfree_thumbs').insert({
+          post_id: id,
+          user_id: ctx.state.user.id,
+          thumbs_down: 1,
+        });
+      } else {
+        await database('seoulfree_thumbs').update('thumbs_down', 1);
+      }
+
+      await database('seoulfree')
+        .where('id', '=', id)
+        .increment('thumbs_down', 1)
+        .then((result) => {
+          ctx.response.status = 200;
+          ctx.body = result;
+        });
+    } else {
+      ctx.response.status = 401;
+      ctx.body = 'thumbs_down_duplicate';
+    }
+  } else {
+    ctx.response.status = 401;
+    ctx.body = '자신의 글을 비추천할 수 없습니다.';
+  }
 };
 
 // 댓글 목록
@@ -150,13 +253,14 @@ exports.createComment = async (ctx) => {
   const { postCreatorId, content } = ctx.request.body;
   const user_id = ctx.state.user.id;
 
-  // 알림
-  await database('notification').insert({
-    post_id: id,
-    sender_id: user_id,
-    receiver_id: postCreatorId,
-    content: content,
-  });
+  if (postCreatorId !== ctx.state.user.id) {
+    await database('notification').insert({
+      post_id: id,
+      sender_id: user_id,
+      receiver_id: postCreatorId,
+      content: content,
+    });
+  }
 
   await database('seoulfree_comment')
     .insert({
@@ -174,31 +278,46 @@ exports.createComment = async (ctx) => {
 exports.deleteComment = async (ctx) => {
   const { id, comment_id } = ctx.params;
 
-  await database('seoulfree_comment')
-    .where(function () {
-      this.where('id', '=', comment_id).andWhere('post_id', '=', id);
-    })
-    .del()
-    .then((result) => {
-      ctx.response.status = 200;
-      ctx.body = result;
-    });
-};
+  const commentWriterId = database('seoulfree_comment')
+    .select('user_id')
+    .where('id', comment_id)
+    .then((result) => result[0].user_id);
 
-// 댓글 수정
-exports.updateComment = (ctx) => {
-  ctx.body = 'updated';
+  if ((await commentWriterId) == ctx.state.user.id) {
+    await database('seoulfree_comment')
+      .where(function () {
+        this.where('id', '=', comment_id).andWhere('post_id', '=', id);
+      })
+      .del()
+      .then((result) => {
+        ctx.response.status = 200;
+        ctx.body = result;
+      });
+  } else {
+    ctx.response.status = 401;
+    ctx.body = '권한이 없습니다.';
+  }
 };
 
 // 댓글 추천
 exports.commentThumbsUp = async (ctx) => {
   const { comment_id } = ctx.params;
 
-  await database('seoulfree_comment')
-    .where('id', '=', comment_id)
-    .increment('thumbs_up', 1)
-    .then((result) => {
-      ctx.response.status = 200;
-      ctx.body = result;
-    });
+  const commentWriterId = database('seoulfree_comment')
+    .select('user_id')
+    .where('id', comment_id)
+    .then((result) => result[0].user_id);
+
+  if ((await commentWriterId) == ctx.state.user.id) {
+    await database('seoulfree_comment')
+      .where('id', '=', comment_id)
+      .increment('thumbs_up', 1)
+      .then((result) => {
+        ctx.response.status = 200;
+        ctx.body = result;
+      });
+  } else {
+    ctx.response.status = 401;
+    ctx.body = '권한이 없습니다.';
+  }
 };
