@@ -80,7 +80,7 @@ exports.createPost = async (ctx) => {
 };
 
 // 게시물 상세
-exports.listDetailedPost = async (ctx) => {
+exports.detailedPost = async (ctx) => {
   const { id } = ctx.params;
 
   if (ctx.cookies.get('seoulfree_' + id) == undefined) {

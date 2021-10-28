@@ -8,7 +8,7 @@ const checkLoggedIn = require('../../lib/checkLoggedIn');
 seoulfree.get('/', checkLoggedIn, seoulfreeController.listPost);
 seoulfree.get('/search/:title', checkLoggedIn, seoulfreeController.searchPost);
 seoulfree.post('/create', checkLoggedIn, seoulfreeController.createPost);
-seoulfree.get('/:id', checkLoggedIn, seoulfreeController.listDetailedPost);
+seoulfree.get('/:id', checkLoggedIn, seoulfreeController.detailedPost);
 seoulfree.delete('/:id/delete', checkLoggedIn, seoulfreeController.deletePost);
 seoulfree.patch('/:id/update', checkLoggedIn, seoulfreeController.updatePost);
 seoulfree.post('/:id/thumbs_up', checkLoggedIn, seoulfreeController.postThumbsUp);

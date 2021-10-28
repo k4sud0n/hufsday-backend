@@ -114,6 +114,24 @@ CREATE TABLE notification (
 );
 ```
 
+### 쪽지
+
+```sql
+CREATE TABLE message (
+    id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    parent_id INT UNSIGNED NULL,
+    sender_id INT UNSIGNED NOT NULL,
+    receiver_id INT UNSIGNED NOT NULL,
+    content text NOT NULL,
+    readed BOOLEAN NOT NULL DEFAULT 0,
+    sender_deleted BOOLEAN NOT NULL DEFAULT 0,
+    receiver_deleted BOOLEAN NOT NULL DEFAULT 0,
+    created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES user(id),
+    FOREIGN KEY (receiver_id) REFERENCES user(id)
+);
+```
+
 ### 문제
 
 프론트엔드에서 jwt 쿠키 가져오기는 https://r4bb1t.tistory.com/38 참고 (간단하게 proxy 주면 해결되는 문제)
@@ -121,5 +139,5 @@ CREATE TABLE notification (
 ### 개선
 
 - 토큰 시스템 passport-jwt로 고치기
-- [REST API 다시 설계하기](https://sanghaklee.tistory.com/57)
+- [REST API 다시 설계하기](https://sanghaklee.tistory.com/57) (너무 중구난방임)
 - DB 테이블 일일이 쿼리 치지 말고 knex createSchema 사용해서 개선하기
