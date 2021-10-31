@@ -21,7 +21,8 @@
     "koa-bodyparser": "^4.3.0",
     "koa-helmet": "^6.1.0",
     "koa-morgan": "^1.0.1",
-    "mysql2": "^2.3.0"
+    "mysql2": "^2.3.0",
+    "puppeteer": "^10.4.0"
   },
   "devDependencies": {
     "eslint": "^7.32.0",

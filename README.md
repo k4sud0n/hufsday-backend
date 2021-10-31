@@ -93,9 +93,16 @@ CREATE TABLE user (
     username varchar(50) UNIQUE NOT NULL,
     password varchar(255) NOT NULL,
     nickname varchar(50) UNIQUE NOT NULL,
+    major varchar(50) DEFAULT NULL,
+    campus varchar(50) DEFAULT NULL,
+    class_of INT UNSIGNED DEFAULT NULL,
+    student_id INT UNSIGNED UNIQUE DEFAULT NULL,
+    authorized BOOLEAN NOT NULL DEFAULT 0,
     created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;
 ```
+
+```UPDATE user SET major=NULL, campus=NULL, class_of=NULL, student_id=NULL, authorized=0 WHERE id = 1 OR id = 2;```
 
 ### 알림 테이블
 

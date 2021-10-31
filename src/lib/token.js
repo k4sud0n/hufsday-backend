@@ -2,6 +2,21 @@ require('dotenv').config();
 
 const jwt = require('jsonwebtoken');
 
+const generateToken = (payload) => {
+  return new Promise((resolve, reject) => {
+    const options = {
+      expiresIn: '7d',
+      issuer: 'hufsday',
+      subject: 'userInfo',
+    };
+
+    jwt.sign(payload, process.env.SECRET_KEY, options, (error, token) => {
+      if (error) reject(error);
+      resolve(token);
+    });
+  });
+};
+
 const decodeToken = (token) => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, process.env.SECRET_KEY, (error, decoded) => {
@@ -22,15 +37,30 @@ exports.jwtMiddleware = async (ctx, next) => {
       id: decoded.id,
       username: decoded.username,
       nickname: decoded.nickname,
+      created: decoded.created,
+      major: decoded.major,
+      campus: decoded.campus,
+      class_of: decoded.class_of,
+      authorized: decoded.authorized,
     };
 
     // 토큰 만료일이 하루밖에 안남으면 토큰을 재발급합니다
     if (Date.now() / 1000 - decoded.iat > 60 * 60 * 24) {
       // 하루가 지나면 갱신해준다.
-      const { username, nickname } = decoded;
-      const freshToken = await generateToken({ username, nickname }, 'user');
+      const payload = {
+        id: decoded.id,
+        username: decoded.username,
+        nickname: decoded.nickname,
+        created: decoded.created,
+        major: decoded.major,
+        campus: decoded.campus,
+        class_of: decoded.class_of,
+        authorized: decoded.authorized,
+      };
+
+      const freshToken = await generateToken(payload);
       ctx.cookies.set('access_token', freshToken, {
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7days
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         httpOnly: true,
       });
     }

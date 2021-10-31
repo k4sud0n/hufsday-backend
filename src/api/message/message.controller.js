@@ -2,6 +2,7 @@ const database = require('../../database');
 
 // 쪽지 목록
 exports.listMessage = async (ctx) => {
+  // SELECT *, CASE WHEN parent_id=0 THEN id ELSE parent_id END AS m_id FROM message;
   const { id } = ctx.state.user;
 
   let messageList = [];
@@ -17,15 +18,21 @@ exports.listMessage = async (ctx) => {
     });
 
   for (const messageId of await messageIds) {
-    // SELECT * FROM message WHERE (sender_id = 1 OR receiver_id = 1) AND (id = 18 OR parent_id = 18);
-    // SELECT COUNT(id) FROM message WHERE (sender_id = 1 OR receiver_id = 1) AND (id = 18 OR parent_id = 18) AND (readed = 0);
-    // SELECT *, SUM(CASE WHEN readed=0 THEN 1 ELSE 0 END) AS unreaded_message FROM message WHERE (sender_id = 1 OR receiver_id = 1) AND (id = 18 OR parent_id = 18) GROUP BY id;
+    // SELECT * FROM message WHERE (sender_id = 1 OR receiver_id = 1) AND (id = 1 OR parent_id = 1);
+    // SELECT COUNT(id) FROM message WHERE (sender_id = 1 OR receiver_id = 1) AND (id = 1 OR parent_id = 1) AND (readed = 0);
+    // SELECT *, SUM(CASE WHEN readed=0 THEN 1 ELSE 0 END) AS unreaded_message FROM message WHERE (sender_id = 1 OR receiver_id = 1) AND (id = 1 OR parent_id = 1) GROUP BY id;
     // SELECT CASE WHEN parent_id=0 THEN id ELSE parent_id END AS m_id, GROUP_CONCAT(CASE WHEN readed=0 THEN content ELSE '' END ORDER BY readed, id SEPARATOR '\r\n') AS contents, SUM(CASE WHEN readed=0 THEN 1 ELSE 0 END) AS unreaded_message FROM message GROUP BY m_id;
 
     await database('message')
       .select('*')
       .sum({
-        unreaded_message: database.raw('CASE WHEN readed=0 THEN 1 ELSE 0 END'),
+        unreaded: database.raw(
+          'CASE WHEN (receiver_id = :id) AND (id = :messageId OR parent_id = :messageId) AND readed=0 THEN 1 ELSE 0 END',
+          {
+            id: id,
+            messageId: messageId,
+          }
+        ),
       })
       .where(function () {
         this.where('sender_id', id).orWhere('receiver_id', id);
@@ -39,20 +46,6 @@ exports.listMessage = async (ctx) => {
       .then((result) => {
         messageList.push(result[0]);
       });
-
-    // await database('message')
-    //   .select('*')
-    //   .where(function () {
-    //     this.where('sender_id', id).orWhere('receiver_id', id);
-    //   })
-    //   .where(function () {
-    //     this.where('id', messageId).orWhere('parent_id', messageId);
-    //   })
-    //   .orderBy('id', 'desc')
-    //   .limit(1)
-    //   .then((result) => {
-    //     messageList.push(result[0]);
-    //   });
   }
 
   ctx.response.status = 200;
@@ -171,13 +164,15 @@ exports.createMessage = async (ctx) => {
 
 // 쪽지 전체삭제
 exports.deleteAllMessage = async (ctx) => {
-  const { id } = ctx.state.user;
+  // const { id } = ctx.state.user;
 
-  await database('message')
-    .where('receiver_id', id)
-    .del()
-    .then((result) => {
-      ctx.response.status = 200;
-      ctx.body = result;
-    });
+  // await database('message')
+  //   .where('receiver_id', id)
+  //   .update('receiver_deleted', 1)
+  //   .then((result) => {
+  //     ctx.response.status = 200;
+  //     ctx.body = result;
+  //   });
+
+  ctx.response.status = 404;
 };

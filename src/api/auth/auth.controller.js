@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
 
 const database = require('../../database');
 
+const getWisAuth = require('../../lib/getWisAuth');
+
 // 회원가입
 exports.register = async (ctx) => {
   const { username, password, nickname } = ctx.request.body;
@@ -29,6 +31,41 @@ exports.register = async (ctx) => {
       ctx.body = {
         result: '이미 사용중인 아이디나 닉네임 입니다. 다시 입력해주세요.',
       };
+    }
+  }
+};
+
+exports.authorizaiton = async (ctx) => {
+  const { id } = ctx.state.user;
+  const { wis_id, wis_password } = ctx.request.body;
+
+  const result = await getWisAuth(wis_id, wis_password);
+
+  const campusRegex = result[0].match(/\[(.*?)\]/);
+  const campusName = campusRegex[1];
+
+  const major = result[1];
+  const classOf = result[2].substring(2, 4);
+  const studentId = result[2];
+
+  try {
+    await database('user')
+      .where('id', id)
+      .update({
+        major: major,
+        campus: campusName,
+        class_of: classOf,
+        student_id: studentId,
+        authorized: 1,
+      })
+      .then(() => {
+        ctx.response.status = 200;
+        ctx.body = 'success';
+      });
+  } catch (error) {
+    if (error.code == 'ER_DUP_ENTRY') {
+      ctx.response.status = 401;
+      ctx.body = 'student_id_duplicate';
     }
   }
 };
@@ -84,18 +121,25 @@ exports.login = async (ctx) => {
                 id: user.id,
                 username: user.username,
                 nickname: user.nickname,
+                created: user.created,
+                major: user.major,
+                campus: user.campus,
+                class_of: user.class_of,
+                authorized: user.authorized,
               };
+
               const options = {
-                expiresIn: '12h',
+                expiresIn: '7d',
                 issuer: 'hufsday',
                 subject: 'userInfo',
               };
+
               const token = jwt.sign(payload, process.env.SECRET_KEY, options);
 
               ctx.response.status = 200;
               ctx.cookies.set('access_token', token, {
-                httpOnly: true,
                 maxAge: 1000 * 60 * 60 * 24 * 7,
+                httpOnly: true,
               });
             }
           });
