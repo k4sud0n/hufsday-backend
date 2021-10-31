@@ -102,8 +102,6 @@ CREATE TABLE user (
 ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;
 ```
 
-```UPDATE user SET major=NULL, campus=NULL, class_of=NULL, student_id=NULL, authorized=0 WHERE id = 1 OR id = 2;```
-
 ### 알림 테이블
 
 ```sql

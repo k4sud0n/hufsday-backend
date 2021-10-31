@@ -39,34 +39,39 @@ exports.authorizaiton = async (ctx) => {
   const { id } = ctx.state.user;
   const { wis_id, wis_password } = ctx.request.body;
 
-  const result = await getWisAuth(wis_id, wis_password);
-
-  const campusRegex = result[0].match(/\[(.*?)\]/);
-  const campusName = campusRegex[1];
-
-  const major = result[1];
-  const classOf = result[2].substring(2, 4);
-  const studentId = result[2];
-
   try {
-    await database('user')
-      .where('id', id)
-      .update({
-        major: major,
-        campus: campusName,
-        class_of: classOf,
-        student_id: studentId,
-        authorized: 1,
-      })
-      .then(() => {
-        ctx.response.status = 200;
-        ctx.body = 'success';
-      });
-  } catch (error) {
-    if (error.code == 'ER_DUP_ENTRY') {
-      ctx.response.status = 401;
-      ctx.body = 'student_id_duplicate';
+    const result = await getWisAuth(wis_id, wis_password);
+
+    const campusRegex = result[0].match(/\[(.*?)\]/);
+    const campusName = campusRegex[1];
+
+    const major = result[1];
+    const classOf = result[2].substring(2, 4);
+    const studentId = result[2];
+
+    try {
+      await database('user')
+        .where('id', id)
+        .update({
+          major: major,
+          campus: campusName,
+          class_of: classOf,
+          student_id: studentId,
+          authorized: 1,
+        })
+        .then(() => {
+          ctx.response.status = 200;
+          ctx.body = 'success';
+        });
+    } catch (error) {
+      if (error.code == 'ER_DUP_ENTRY') {
+        ctx.response.status = 401;
+        ctx.body = 'student_id_duplicate';
+      }
     }
+  } catch (error) {
+    ctx.response.status = 401;
+    ctx.body = 'no_match_student_id';
   }
 };
 

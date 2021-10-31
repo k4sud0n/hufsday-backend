@@ -25,6 +25,11 @@ const getWisAuth = async (wis_id, wis_password) => {
     'body > div > form:nth-child(5) > div.login_wrap > div > div.login_right > div > a'
   );
 
+  await majorPage.on('dialog', async (dialog) => {
+    await dialog.dismiss();
+    await browser.close();
+  });
+
   await majorPage.waitForTimeout(500);
 
   await majorPage.goto(
@@ -57,6 +62,11 @@ const getWisAuth = async (wis_id, wis_password) => {
   await etcPage.goto(
     'https://wis.hufs.ac.kr/src08/jsp/stuinfo_10/STUINFO1000C_myinfo.jsp'
   );
+
+  await etcPage.on('dialog', async (dialog) => {
+    await dialog.dismiss();
+    await browser.close();
+  });
 
   await etcPage.waitForSelector(
     'body > div > table > tbody > tr:nth-child(2) > td:nth-child(2)'
