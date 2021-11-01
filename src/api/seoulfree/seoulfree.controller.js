@@ -12,14 +12,17 @@ exports.listPost = async (ctx) => {
     .select(
       'seoulfree.id',
       'seoulfree.title',
-      'seoulfree.content',
+      'user.major',
       'seoulfree.created',
       'seoulfree.view_count',
       'seoulfree.thumbs_up'
     )
     .count('seoulfree_comment.post_id', { as: 'number_of_comments' })
     .leftJoin('seoulfree_comment', function () {
-      this.on('seoulfree.id', '=', 'seoulfree_comment.post_id');
+      this.on('seoulfree_comment.post_id', '=', 'seoulfree.id');
+    })
+    .leftJoin('user', function () {
+      this.on('user.id', '=', 'seoulfree.user_id');
     })
     .groupBy('seoulfree.id')
     .orderBy('id', 'desc')
@@ -42,7 +45,7 @@ exports.searchPost = async (ctx) => {
     .select(
       'seoulfree.id',
       'seoulfree.title',
-      'seoulfree.content',
+      'user.major',
       'seoulfree.created',
       'seoulfree.view_count',
       'seoulfree.thumbs_up'
@@ -51,6 +54,9 @@ exports.searchPost = async (ctx) => {
     .count('seoulfree_comment.post_id', { as: 'number_of_comments' })
     .leftJoin('seoulfree_comment', function () {
       this.on('seoulfree.id', '=', 'seoulfree_comment.post_id');
+    })
+    .leftJoin('user', function () {
+      this.on('user.id', '=', 'seoulfree.user_id');
     })
     .groupBy('seoulfree.id')
     .orderBy('id', 'desc')
@@ -97,6 +103,7 @@ exports.detailedPost = async (ctx) => {
       'seoulfree.id',
       'seoulfree.title',
       'seoulfree.content',
+      'user.major',
       'seoulfree.created',
       'seoulfree.user_id',
       'seoulfree.view_count',
@@ -106,6 +113,9 @@ exports.detailedPost = async (ctx) => {
     .count('seoulfree_comment.post_id', { as: 'number_of_comments' })
     .leftJoin('seoulfree_comment', function () {
       this.on('seoulfree.id', '=', 'seoulfree_comment.post_id');
+    })
+    .leftJoin('user', function () {
+      this.on('user.id', '=', 'seoulfree.user_id');
     })
     .where('seoulfree.id', id)
     .then((result) => {
@@ -267,6 +277,7 @@ exports.listComment = async (ctx) => {
       'seoulfree_comment.post_id',
       'seoulfree_comment.id',
       'seoulfree_comment.user_id',
+      'user.major',
       'seoulfree_comment.content',
       'seoulfree_comment.created',
       'seoulfree_comment.thumbs_up',
@@ -274,6 +285,9 @@ exports.listComment = async (ctx) => {
     )
     .join('seoulfree', function () {
       this.on('seoulfree_comment.post_id', '=', 'seoulfree.id');
+    })
+    .leftJoin('user', function () {
+      this.on('user.id', '=', 'seoulfree_comment.user_id');
     })
     .where('seoulfree.id', id)
     .then((result) => {

@@ -39,8 +39,22 @@ exports.authorizaiton = async (ctx) => {
   const { id } = ctx.state.user;
   const { wis_id, wis_password } = ctx.request.body;
 
+  const schema = Joi.object({
+    wis_id: Joi.string()
+      .pattern(/^[0-9]+$/)
+      .min(7)
+      .max(30)
+      .required(),
+    wis_password: Joi.string().min(4).max(30).required(),
+  });
+
+  const value = await schema.validateAsync({
+    wis_id: wis_id,
+    wis_password: wis_password,
+  });
+
   try {
-    const result = await getWisAuth(wis_id, wis_password);
+    const result = await getWisAuth(value.wis_id, value.wis_password);
 
     const campusRegex = result[0].match(/\[(.*?)\]/);
     const campusName = campusRegex[1];
@@ -92,10 +106,8 @@ exports.login = async (ctx) => {
   const { username, password } = ctx.request.body;
 
   const schema = Joi.object({
-    username: Joi.string().alphanum().min(3).max(30).required(),
-    password: Joi.string()
-      .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
-      .required(),
+    username: Joi.string().min(4).max(30).required(),
+    password: Joi.string().min(4).max(30).required(),
   });
 
   const value = await schema.validateAsync({
