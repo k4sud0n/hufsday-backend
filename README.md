@@ -107,13 +107,13 @@ CREATE TABLE user (
 ```sql
 CREATE TABLE notification (
     id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    board varchar(50) NOT NULL,
     post_id INT UNSIGNED NOT NULL,
     sender_id INT UNSIGNED NOT NULL,
     receiver_id INT UNSIGNED NOT NULL,
     content text NOT NULL,
     created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     readed boolean not null default 0,
-    FOREIGN KEY (post_id) REFERENCES seoulfree(id) ON DELETE CASCADE,
     FOREIGN KEY (sender_id) REFERENCES user(id),
     FOREIGN KEY (receiver_id) REFERENCES user(id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;

@@ -5,7 +5,15 @@ exports.listNotification = async (ctx) => {
   const { id } = ctx.state.user;
 
   await database('notification')
-    .select('id', 'sender_id', 'post_id', 'content', 'created', 'readed')
+    .select(
+      'id',
+      'sender_id',
+      'board',
+      'post_id',
+      'content',
+      'created',
+      'readed'
+    )
     .where('receiver_id', id)
     .orderBy('id', 'desc')
     .then((result) => {

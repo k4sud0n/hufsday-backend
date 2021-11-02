@@ -8,23 +8,23 @@ exports.listPost = async (ctx) => {
     ctx.query.page = 1;
   }
 
-  await database('seoulfree')
+  await database('globalfree')
     .select(
-      'seoulfree.id',
-      'seoulfree.title',
+      'globalfree.id',
+      'globalfree.title',
       'user.major',
-      'seoulfree.created',
-      'seoulfree.view_count',
-      'seoulfree.thumbs_up'
+      'globalfree.created',
+      'globalfree.view_count',
+      'globalfree.thumbs_up'
     )
-    .count('seoulfree_comment.post_id', { as: 'number_of_comments' })
-    .leftJoin('seoulfree_comment', function () {
-      this.on('seoulfree_comment.post_id', '=', 'seoulfree.id');
+    .count('globalfree_comment.post_id', { as: 'number_of_comments' })
+    .leftJoin('globalfree_comment', function () {
+      this.on('globalfree_comment.post_id', '=', 'globalfree.id');
     })
     .leftJoin('user', function () {
-      this.on('user.id', '=', 'seoulfree.user_id');
+      this.on('user.id', '=', 'globalfree.user_id');
     })
-    .groupBy('seoulfree.id')
+    .groupBy('globalfree.id')
     .orderBy('id', 'desc')
     .limit(20)
     .offset((ctx.query.page - 1) * 20)
@@ -41,24 +41,24 @@ exports.searchPost = async (ctx) => {
     ctx.query.page = 1;
   }
 
-  await database('seoulfree')
+  await database('globalfree')
     .select(
-      'seoulfree.id',
-      'seoulfree.title',
+      'globalfree.id',
+      'globalfree.title',
       'user.major',
-      'seoulfree.created',
-      'seoulfree.view_count',
-      'seoulfree.thumbs_up'
+      'globalfree.created',
+      'globalfree.view_count',
+      'globalfree.thumbs_up'
     )
     .where('title', 'like', `%${title}%`)
-    .count('seoulfree_comment.post_id', { as: 'number_of_comments' })
-    .leftJoin('seoulfree_comment', function () {
-      this.on('seoulfree.id', '=', 'seoulfree_comment.post_id');
+    .count('globalfree_comment.post_id', { as: 'number_of_comments' })
+    .leftJoin('globalfree_comment', function () {
+      this.on('globalfree.id', '=', 'globalfree_comment.post_id');
     })
     .leftJoin('user', function () {
-      this.on('user.id', '=', 'seoulfree.user_id');
+      this.on('user.id', '=', 'globalfree.user_id');
     })
-    .groupBy('seoulfree.id')
+    .groupBy('globalfree.id')
     .orderBy('id', 'desc')
     .limit(20)
     .offset((ctx.query.page - 1) * 20)
@@ -73,7 +73,7 @@ exports.createPost = async (ctx) => {
   const { title, content } = ctx.request.body;
   const { id } = ctx.state.user;
 
-  await database('seoulfree')
+  await database('globalfree')
     .insert({
       title: title,
       content: content,
@@ -89,7 +89,7 @@ exports.createPost = async (ctx) => {
 exports.detailedPost = async (ctx) => {
   const { id } = ctx.params;
 
-  const checkIfPost = await database('seoulfree')
+  const checkIfPost = await database('globalfree')
     .select('id')
     .where('id', id)
     .then((result) => {
@@ -97,35 +97,35 @@ exports.detailedPost = async (ctx) => {
     });
 
   if (checkIfPost.length !== 0) {
-    if (ctx.cookies.get('seoulfree_' + id) == undefined) {
-      ctx.cookies.set('seoulfree_' + id, 'view', {
+    if (ctx.cookies.get('globalfree_' + id) == undefined) {
+      ctx.cookies.set('globalfree_' + id, 'view', {
         httpOnly: true,
         maxAge: 1000 * 60 * 60 * 24 * 7,
       });
 
-      await database('seoulfree').increment('view_count', 1);
+      await database('globalfree').increment('view_count', 1);
     }
 
-    await database('seoulfree')
+    await database('globalfree')
       .select(
-        'seoulfree.id',
-        'seoulfree.title',
-        'seoulfree.content',
+        'globalfree.id',
+        'globalfree.title',
+        'globalfree.content',
         'user.major',
-        'seoulfree.created',
-        'seoulfree.user_id',
-        'seoulfree.view_count',
-        'seoulfree.thumbs_up',
-        'seoulfree.thumbs_down'
+        'globalfree.created',
+        'globalfree.user_id',
+        'globalfree.view_count',
+        'globalfree.thumbs_up',
+        'globalfree.thumbs_down'
       )
-      .count('seoulfree_comment.post_id', { as: 'number_of_comments' })
-      .leftJoin('seoulfree_comment', function () {
-        this.on('seoulfree.id', '=', 'seoulfree_comment.post_id');
+      .count('globalfree_comment.post_id', { as: 'number_of_comments' })
+      .leftJoin('globalfree_comment', function () {
+        this.on('globalfree.id', '=', 'globalfree_comment.post_id');
       })
       .leftJoin('user', function () {
-        this.on('user.id', '=', 'seoulfree.user_id');
+        this.on('user.id', '=', 'globalfree.user_id');
       })
-      .where('seoulfree.id', id)
+      .where('globalfree.id', id)
       .then((result) => {
         ctx.response.status = 200;
         ctx.body = result;
@@ -139,13 +139,13 @@ exports.detailedPost = async (ctx) => {
 exports.deletePost = async (ctx) => {
   const { id } = ctx.params;
 
-  const postWriterId = database('seoulfree')
+  const postWriterId = database('globalfree')
     .select('user_id')
-    .where('seoulfree.id', id)
+    .where('globalfree.id', id)
     .then((result) => result[0].user_id);
 
   if ((await postWriterId) == ctx.state.user.id) {
-    await database('seoulfree')
+    await database('globalfree')
       .where('id', '=', id)
       .del()
       .then((result) => {
@@ -163,13 +163,13 @@ exports.updatePost = async (ctx) => {
   const { title, content } = ctx.request.body;
   const { id } = ctx.params;
 
-  const postWriterId = database('seoulfree')
+  const postWriterId = database('globalfree')
     .select('user_id')
-    .where('seoulfree.id', id)
+    .where('globalfree.id', id)
     .then((result) => result[0].user_id);
 
   if ((await postWriterId) == ctx.state.user.id) {
-    await database('seoulfree')
+    await database('globalfree')
       .where('id', '=', id)
       .update({
         title: title,
@@ -189,12 +189,12 @@ exports.updatePost = async (ctx) => {
 exports.postThumbsUp = async (ctx) => {
   const { id } = ctx.params;
 
-  const postWriterId = database('seoulfree')
+  const postWriterId = database('globalfree')
     .select('user_id')
-    .where('seoulfree.id', id)
+    .where('globalfree.id', id)
     .then((result) => result[0].user_id);
 
-  const checkThumbsUp = database('seoulfree_thumbs')
+  const checkThumbsUp = database('globalfree_thumbs')
     .select('thumbs_up')
     .where('post_id', id)
     .andWhere('user_id', ctx.state.user.id)
@@ -206,16 +206,16 @@ exports.postThumbsUp = async (ctx) => {
       (await checkThumbsUp)[0].thumbs_up == 0
     ) {
       if ((await checkThumbsUp).length == 0) {
-        await database('seoulfree_thumbs').insert({
+        await database('globalfree_thumbs').insert({
           post_id: id,
           user_id: ctx.state.user.id,
           thumbs_up: 1,
         });
       } else {
-        await database('seoulfree_thumbs').update('thumbs_up', 1);
+        await database('globalfree_thumbs').update('thumbs_up', 1);
       }
 
-      await database('seoulfree')
+      await database('globalfree')
         .where('id', '=', id)
         .increment('thumbs_up', 1)
         .then((result) => {
@@ -236,12 +236,12 @@ exports.postThumbsUp = async (ctx) => {
 exports.postThumbsDown = async (ctx) => {
   const { id } = ctx.params;
 
-  const postWriterId = database('seoulfree')
+  const postWriterId = database('globalfree')
     .select('user_id')
-    .where('seoulfree.id', id)
+    .where('globalfree.id', id)
     .then((result) => result[0].user_id);
 
-  const checkThumbsDown = database('seoulfree_thumbs')
+  const checkThumbsDown = database('globalfree_thumbs')
     .select('thumbs_down')
     .where('post_id', id)
     .andWhere('user_id', ctx.state.user.id)
@@ -253,16 +253,16 @@ exports.postThumbsDown = async (ctx) => {
       (await checkThumbsDown)[0].thumbs_down == 0
     ) {
       if ((await checkThumbsDown).length == 0) {
-        await database('seoulfree_thumbs').insert({
+        await database('globalfree_thumbs').insert({
           post_id: id,
           user_id: ctx.state.user.id,
           thumbs_down: 1,
         });
       } else {
-        await database('seoulfree_thumbs').update('thumbs_down', 1);
+        await database('globalfree_thumbs').update('thumbs_down', 1);
       }
 
-      await database('seoulfree')
+      await database('globalfree')
         .where('id', '=', id)
         .increment('thumbs_down', 1)
         .then((result) => {
@@ -283,24 +283,24 @@ exports.postThumbsDown = async (ctx) => {
 exports.listComment = async (ctx) => {
   const { id } = ctx.params;
 
-  await database('seoulfree_comment')
+  await database('globalfree_comment')
     .select(
-      'seoulfree_comment.post_id',
-      'seoulfree_comment.id',
-      'seoulfree_comment.user_id',
+      'globalfree_comment.post_id',
+      'globalfree_comment.id',
+      'globalfree_comment.user_id',
       'user.major',
-      'seoulfree_comment.content',
-      'seoulfree_comment.created',
-      'seoulfree_comment.thumbs_up',
-      'seoulfree_comment.parent_id'
+      'globalfree_comment.content',
+      'globalfree_comment.created',
+      'globalfree_comment.thumbs_up',
+      'globalfree_comment.parent_id'
     )
-    .join('seoulfree', function () {
-      this.on('seoulfree_comment.post_id', '=', 'seoulfree.id');
+    .join('globalfree', function () {
+      this.on('globalfree_comment.post_id', '=', 'globalfree.id');
     })
     .leftJoin('user', function () {
-      this.on('user.id', '=', 'seoulfree_comment.user_id');
+      this.on('user.id', '=', 'globalfree_comment.user_id');
     })
-    .where('seoulfree.id', id)
+    .where('globalfree.id', id)
     .then((result) => {
       ctx.body = result;
     });
@@ -315,10 +315,10 @@ exports.createComment = async (ctx) => {
   // 일반 댓글일 경우
   if (parentId == undefined) {
     if (postCreatorId !== ctx.state.user.id) {
-      sendNotification('seoulfree', id, user_id, postCreatorId, content);
+      sendNotification('globalfree', id, user_id, postCreatorId, content);
     }
 
-    await database('seoulfree_comment')
+    await database('globalfree_comment')
       .insert({
         post_id: id,
         content: content,
@@ -330,14 +330,14 @@ exports.createComment = async (ctx) => {
       });
   } else {
     // 답글일 경우
-    const commentCreatorId = database('seoulfree_comment')
+    const commentCreatorId = database('globalfree_comment')
       .select('user_id')
       .where('id', parentId)
       .then((result) => result[0].user_id);
 
     if ((await commentCreatorId) !== ctx.state.user.id) {
       sendNotification(
-        'seoulfree',
+        'globalfree',
         id,
         user_id,
         await commentCreatorId,
@@ -345,7 +345,7 @@ exports.createComment = async (ctx) => {
       );
     }
 
-    await database('seoulfree_comment')
+    await database('globalfree_comment')
       .insert({
         post_id: id,
         content: content,
@@ -363,13 +363,13 @@ exports.createComment = async (ctx) => {
 exports.deleteComment = async (ctx) => {
   const { id, comment_id } = ctx.params;
 
-  const commentWriterId = database('seoulfree_comment')
+  const commentWriterId = database('globalfree_comment')
     .select('user_id')
     .where('id', comment_id)
     .then((result) => result[0].user_id);
 
   if ((await commentWriterId) == ctx.state.user.id) {
-    await database('seoulfree_comment')
+    await database('globalfree_comment')
       .where(function () {
         this.where('id', '=', comment_id).andWhere('post_id', '=', id);
       })
@@ -388,12 +388,12 @@ exports.deleteComment = async (ctx) => {
 exports.commentThumbsUp = async (ctx) => {
   const { comment_id } = ctx.params;
 
-  const commentWriterId = database('seoulfree_comment')
+  const commentWriterId = database('globalfree_comment')
     .select('user_id')
     .where('id', comment_id)
     .then((result) => result[0].user_id);
 
-  const checkThumbsUp = database('seoulfree_comment_thumbs')
+  const checkThumbsUp = database('globalfree_comment_thumbs')
     .select('thumbs_up')
     .where('comment_id', comment_id)
     .andWhere('user_id', ctx.state.user.id)
@@ -404,13 +404,13 @@ exports.commentThumbsUp = async (ctx) => {
       (await checkThumbsUp).length == 0 ||
       (await checkThumbsUp)[0].thumbs_up == 0
     ) {
-      await database('seoulfree_comment_thumbs').insert({
+      await database('globalfree_comment_thumbs').insert({
         comment_id: comment_id,
         user_id: ctx.state.user.id,
         thumbs_up: 1,
       });
 
-      await database('seoulfree_comment')
+      await database('globalfree_comment')
         .where('id', '=', comment_id)
         .increment('thumbs_up', 1)
         .then((result) => {
