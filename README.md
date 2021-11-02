@@ -116,7 +116,7 @@ CREATE TABLE notification (
     FOREIGN KEY (post_id) REFERENCES seoulfree(id) ON DELETE CASCADE,
     FOREIGN KEY (sender_id) REFERENCES user(id),
     FOREIGN KEY (receiver_id) REFERENCES user(id)
-);
+) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;
 ```
 
 ### 쪽지
@@ -134,7 +134,7 @@ CREATE TABLE message (
     created datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (sender_id) REFERENCES user(id),
     FOREIGN KEY (receiver_id) REFERENCES user(id)
-);
+) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;
 ```
 
 ### 문제

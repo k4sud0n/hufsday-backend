@@ -1,7 +1,9 @@
 const puppeteer = require('puppeteer');
 
 const getWisAuth = async (wis_id, wis_password) => {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
 
   const majorPage = await browser.newPage();
   const etcPage = await browser.newPage();
