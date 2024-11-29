@@ -1,4 +1,6 @@
-# hufsday-back
+# hufsday-backend
+
+![image](https://i.imgur.com/oYbBsmK.jpeg)
 
 ### 환경변수
 
